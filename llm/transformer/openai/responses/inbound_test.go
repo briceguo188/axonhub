@@ -1085,6 +1085,37 @@ func TestConvertToolChoiceToLLM(t *testing.T) {
 	}
 }
 
+func TestConvertToolsToLLM_WebSearchPreview(t *testing.T) {
+	maxUses := int64(2)
+	strict := true
+
+	result, err := convertToolsToLLM([]Tool{
+		{
+			Type:           "web_search_preview",
+			MaxUses:        &maxUses,
+			Strict:         &strict,
+			AllowedDomains: []string{"example.com"},
+			BlockedDomains: []string{"blocked.example"},
+			UserLocation: &llm.WebSearchToolUserLocation{
+				Type:     "approximate",
+				Country:  "CN",
+				City:     "Shanghai",
+				Timezone: "Asia/Shanghai",
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.Equal(t, llm.ToolTypeWebSearch, result[0].Type)
+	require.NotNil(t, result[0].WebSearch)
+	require.Equal(t, &maxUses, result[0].WebSearch.MaxUses)
+	require.Equal(t, &strict, result[0].WebSearch.Strict)
+	require.Equal(t, []string{"example.com"}, result[0].WebSearch.AllowedDomains)
+	require.Equal(t, []string{"blocked.example"}, result[0].WebSearch.BlockedDomains)
+	require.Equal(t, "CN", result[0].WebSearch.UserLocation.Country)
+	require.Equal(t, "Asia/Shanghai", result[0].WebSearch.UserLocation.Timezone)
+}
+
 func TestConvertToMessageContentParts(t *testing.T) {
 	tests := []struct {
 		name     string
