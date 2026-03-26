@@ -740,6 +740,14 @@ func convertToolsToLLM(tools []Tool) ([]llm.Tool, error) {
 				ResponseCustomTool: customTool,
 			})
 
+		case "web_search", "web_search_preview":
+			result = append(result, llm.Tool{
+				Type: llm.ToolTypeWebSearch,
+				WebSearch: &llm.WebSearch{
+					ExternalWebAccess: tool.ExternalWebAccess,
+				},
+			})
+
 		default:
 			// Skip unsupported tool types
 			continue

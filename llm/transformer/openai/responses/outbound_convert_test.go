@@ -707,6 +707,8 @@ func TestResponsesOutboundPreservesWebSearchToolType(t *testing.T) {
 	transformer, err := NewOutboundTransformer("https://example.com", "test-key")
 	require.NoError(t, err)
 
+	externalWebAccess := true
+
 	req := &llm.Request{
 		Model: "gpt-5.4",
 		Messages: []llm.Message{
@@ -718,7 +720,12 @@ func TestResponsesOutboundPreservesWebSearchToolType(t *testing.T) {
 			},
 		},
 		Tools: []llm.Tool{
-			{Type: llm.ToolTypeWebSearch},
+			{
+				Type: llm.ToolTypeWebSearch,
+				WebSearch: &llm.WebSearch{
+					ExternalWebAccess: &externalWebAccess,
+				},
+			},
 		},
 	}
 
@@ -729,4 +736,6 @@ func TestResponsesOutboundPreservesWebSearchToolType(t *testing.T) {
 	require.NoError(t, json.Unmarshal(httpReq.Body, &payload))
 	require.Len(t, payload.Tools, 1)
 	require.Equal(t, llm.ToolTypeWebSearch, payload.Tools[0].Type)
+	require.NotNil(t, payload.Tools[0].ExternalWebAccess)
+	require.True(t, *payload.Tools[0].ExternalWebAccess)
 }

@@ -145,7 +145,14 @@ func (t *OutboundTransformer) TransformRequest(ctx context.Context, llmReq *llm.
 			// Store image output format in TransformerMetadata
 			llmReq.TransformerMetadata["image_output_format"] = tool.OutputFormat
 		case llm.ToolTypeWebSearch:
-			tools = append(tools, Tool{Type: llm.ToolTypeWebSearch})
+			tools = append(tools, Tool{
+				Type: llm.ToolTypeWebSearch,
+				ExternalWebAccess: lo.Ternary(
+					item.WebSearch != nil,
+					item.WebSearch.ExternalWebAccess,
+					nil,
+				),
+			})
 		case llm.ToolTypeResponsesCustomTool:
 			tool := convertCustomToTool(item)
 			tools = append(tools, tool)

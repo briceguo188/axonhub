@@ -26,6 +26,7 @@ type Tool struct {
 	Type        string `json:"type,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
+	ExternalWebAccess *bool `json:"external_web_access,omitempty"`
 
 	// This field is from variant [FunctionTool].
 	Parameters map[string]any `json:"parameters,omitempty"`
