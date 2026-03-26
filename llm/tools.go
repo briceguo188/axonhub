@@ -218,6 +218,7 @@ func FilterGoogleNativeTools(tools []Tool) []Tool {
 }
 
 type WebSearch struct {
+	ExternalWebAccess *bool                     `json:"external_web_access,omitempty"`
 	MaxUses        *int64                    `json:"max_uses,omitempty"`
 	Strict         *bool                     `json:"strict,omitempty"`
 	AllowedDomains []string                  `json:"allowed_domains,omitzero"`

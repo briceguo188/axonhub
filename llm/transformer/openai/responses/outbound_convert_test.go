@@ -1240,3 +1240,40 @@ func TestConvertAssistantMessage_WithCompactContent(t *testing.T) {
 		})
 	}
 }
+
+func TestResponsesOutboundPreservesWebSearchToolType(t *testing.T) {
+	transformer, err := NewOutboundTransformer("https://example.com", "test-key")
+	require.NoError(t, err)
+
+	externalWebAccess := true
+
+	req := &llm.Request{
+		Model: "gpt-5.4",
+		Messages: []llm.Message{
+			{
+				Role: "user",
+				Content: llm.MessageContent{
+					Content: lo.ToPtr("Use web search if needed."),
+				},
+			},
+		},
+		Tools: []llm.Tool{
+			{
+				Type: llm.ToolTypeWebSearch,
+				WebSearch: &llm.WebSearch{
+					ExternalWebAccess: &externalWebAccess,
+				},
+			},
+		},
+	}
+
+	httpReq, err := transformer.TransformRequest(t.Context(), req)
+	require.NoError(t, err)
+
+	var payload Request
+	require.NoError(t, json.Unmarshal(httpReq.Body, &payload))
+	require.Len(t, payload.Tools, 1)
+	require.Equal(t, llm.ToolTypeWebSearch, payload.Tools[0].Type)
+	require.NotNil(t, payload.Tools[0].ExternalWebAccess)
+	require.True(t, *payload.Tools[0].ExternalWebAccess)
+}
