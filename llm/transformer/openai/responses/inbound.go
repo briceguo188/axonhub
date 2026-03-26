@@ -740,6 +740,22 @@ func convertToolsToLLM(tools []Tool) ([]llm.Tool, error) {
 				ResponseCustomTool: customTool,
 			})
 
+		case "web_search", "web_search_preview":
+			webSearch := &llm.WebSearch{
+				MaxUses:        tool.MaxUses,
+				Strict:         tool.Strict,
+				AllowedDomains: tool.AllowedDomains,
+				BlockedDomains: tool.BlockedDomains,
+			}
+			if tool.UserLocation != nil {
+				webSearch.UserLocation = *tool.UserLocation
+			}
+
+			result = append(result, llm.Tool{
+				Type:      llm.ToolTypeWebSearch,
+				WebSearch: webSearch,
+			})
+
 		default:
 			// Skip unsupported tool types
 			continue

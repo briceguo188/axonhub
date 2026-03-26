@@ -332,6 +332,26 @@ func convertCustomToTool(src llm.Tool) Tool {
 	return tool
 }
 
+func convertWebSearchToTool(src llm.Tool) Tool {
+	tool := Tool{
+		Type: "web_search_preview",
+	}
+
+	if src.WebSearch != nil {
+		tool.MaxUses = src.WebSearch.MaxUses
+		tool.Strict = src.WebSearch.Strict
+		tool.AllowedDomains = src.WebSearch.AllowedDomains
+		tool.BlockedDomains = src.WebSearch.BlockedDomains
+
+		if src.WebSearch.UserLocation != (llm.WebSearchToolUserLocation{}) {
+			userLocation := src.WebSearch.UserLocation
+			tool.UserLocation = &userLocation
+		}
+	}
+
+	return tool
+}
+
 // convertFunctionToTool converts an llm.Tool function to Responses API Tool format.
 func convertFunctionToTool(src llm.Tool) Tool {
 	tool := Tool{

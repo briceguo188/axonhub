@@ -22,7 +22,7 @@ type ImageGeneration struct {
 }
 
 type Tool struct {
-	// Any of "function", "image_generation", "custom".
+	// Any of "function", "image_generation", "custom", "web_search", "web_search_preview".
 	Type        string `json:"type,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -53,6 +53,12 @@ type Tool struct {
 	Quality string `json:"quality,omitempty"`
 	// This field is for ImageGeneration
 	Size string `json:"size,omitempty"`
+
+	// These fields are for web search tools.
+	MaxUses        *int64                         `json:"max_uses,omitempty"`
+	AllowedDomains []string                       `json:"allowed_domains,omitempty"`
+	BlockedDomains []string                       `json:"blocked_domains,omitempty"`
+	UserLocation   *llm.WebSearchToolUserLocation `json:"user_location,omitempty"`
 }
 
 // CustomToolFormat represents the format definition for a custom tool.

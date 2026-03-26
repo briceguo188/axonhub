@@ -221,6 +221,36 @@ func TestConvertToolMessage(t *testing.T) {
 	}
 }
 
+func TestConvertWebSearchToTool(t *testing.T) {
+	maxUses := int64(3)
+	strict := true
+
+	result := convertWebSearchToTool(llm.Tool{
+		Type: llm.ToolTypeWebSearch,
+		WebSearch: &llm.WebSearch{
+			MaxUses:        &maxUses,
+			Strict:         &strict,
+			AllowedDomains: []string{"example.com"},
+			BlockedDomains: []string{"blocked.example"},
+			UserLocation: llm.WebSearchToolUserLocation{
+				Type:     "approximate",
+				Country:  "CN",
+				City:     "Shanghai",
+				Timezone: "Asia/Shanghai",
+			},
+		},
+	})
+
+	require.Equal(t, "web_search_preview", result.Type)
+	require.Equal(t, &maxUses, result.MaxUses)
+	require.Equal(t, &strict, result.Strict)
+	require.Equal(t, []string{"example.com"}, result.AllowedDomains)
+	require.Equal(t, []string{"blocked.example"}, result.BlockedDomains)
+	require.NotNil(t, result.UserLocation)
+	require.Equal(t, "CN", result.UserLocation.Country)
+	require.Equal(t, "Asia/Shanghai", result.UserLocation.Timezone)
+}
+
 func TestConvertStreamOptions(t *testing.T) {
 	tests := []struct {
 		name     string
