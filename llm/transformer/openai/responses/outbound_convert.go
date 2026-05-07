@@ -358,6 +358,10 @@ func convertWebSearchToTool(src llm.Tool) Tool {
 	}
 
 	if src.WebSearch != nil {
+		if src.WebSearch.ExternalWebAccess != nil {
+			tool.Type = llm.ToolTypeWebSearch
+			tool.ExternalWebAccess = src.WebSearch.ExternalWebAccess
+		}
 		tool.MaxUses = src.WebSearch.MaxUses
 		tool.Strict = src.WebSearch.Strict
 		tool.AllowedDomains = src.WebSearch.AllowedDomains
