@@ -285,6 +285,26 @@ function filterProviders(data, allowedIds) {
 		}
 	}
 
+	// Map llama channel's llama models to meta developer
+	if (allowedIds.includes("meta") && data.providers.llama) {
+		const llamaProvider = data.providers.llama;
+		const llamaModels = (llamaProvider.models || []).filter((m) =>
+			m.id?.toLowerCase().startsWith("llama"),
+		);
+		if (llamaModels.length > 0) {
+			filtered.meta = {
+				...llamaProvider,
+				id: "meta",
+				name: "Meta",
+				display_name: "Meta",
+				models: llamaModels,
+			};
+			console.log(
+				`Mapped ${llamaModels.length} llama models to meta developer`,
+			);
+		}
+	}
+
 	// Map doubao channel's doubao models to bytedance developer
 	if (allowedIds.includes("bytedance") && data.providers.doubao) {
 		const doubaoProvider = data.providers.doubao;
@@ -301,6 +321,48 @@ function filterProviders(data, allowedIds) {
 			};
 			console.log(
 				`Mapped ${doubaoModels.length} doubao models to bytedance developer`,
+			);
+		}
+	}
+
+	// Merge xiaomi-token-plan-* providers into xiaomi developer
+	if (allowedIds.includes("xiaomi")) {
+		const xiaomiTokenPlanKeys = [
+			"xiaomi-token-plan-cn",
+			"xiaomi-token-plan-sgp",
+			"xiaomi-token-plan-ams",
+		];
+		const mergedModels = new Map();
+		const baseProvider = filtered.xiaomi || data.providers.xiaomi || null;
+
+		// Process base provider first so its real pricing takes precedence
+		if (baseProvider) {
+			for (const model of baseProvider.models || []) {
+				mergedModels.set(model.id, deepClone(model));
+			}
+		}
+
+		// Add token-plan models only for IDs not already present
+		for (const key of xiaomiTokenPlanKeys) {
+			const provider = data.providers[key];
+			if (!provider) continue;
+			for (const model of provider.models || []) {
+				if (!mergedModels.has(model.id)) {
+					mergedModels.set(model.id, deepClone(model));
+				}
+			}
+		}
+
+		if (mergedModels.size > 0) {
+			filtered.xiaomi = {
+				...(baseProvider || {}),
+				id: "xiaomi",
+				name: "Xiaomi",
+				display_name: "Xiaomi",
+				models: Array.from(mergedModels.values()),
+			};
+			console.log(
+				`Merged ${mergedModels.size} models from xiaomi-token-plan-* into xiaomi developer`,
 			);
 		}
 	}

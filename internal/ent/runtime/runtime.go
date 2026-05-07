@@ -526,6 +526,10 @@ func init() {
 	requestDescFormat := requestFields[6].Descriptor()
 	// request.DefaultFormat holds the default value on creation for the format field.
 	request.DefaultFormat = requestDescFormat.Default.(string)
+	// requestDescExternalID is the schema descriptor for external_id field.
+	requestDescExternalID := requestFields[12].Descriptor()
+	// request.ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
+	request.ExternalIDValidator = requestDescExternalID.Validators[0].(func(string) error)
 	// requestDescStream is the schema descriptor for stream field.
 	requestDescStream := requestFields[14].Descriptor()
 	// request.DefaultStream holds the default value on creation for the stream field.
@@ -535,7 +539,7 @@ func init() {
 	// request.DefaultClientIP holds the default value on creation for the client_ip field.
 	request.DefaultClientIP = requestDescClientIP.Default.(string)
 	// requestDescContentSaved is the schema descriptor for content_saved field.
-	requestDescContentSaved := requestFields[18].Descriptor()
+	requestDescContentSaved := requestFields[19].Descriptor()
 	// request.DefaultContentSaved holds the default value on creation for the content_saved field.
 	request.DefaultContentSaved = requestDescContentSaved.Default.(bool)
 	requestexecutionMixin := schema.RequestExecution{}.Mixin()
@@ -557,6 +561,10 @@ func init() {
 	requestexecutionDescProjectID := requestexecutionFields[0].Descriptor()
 	// requestexecution.DefaultProjectID holds the default value on creation for the project_id field.
 	requestexecution.DefaultProjectID = requestexecutionDescProjectID.Default.(int)
+	// requestexecutionDescExternalID is the schema descriptor for external_id field.
+	requestexecutionDescExternalID := requestexecutionFields[4].Descriptor()
+	// requestexecution.ExternalIDValidator is a validator for the "external_id" field. It is called by the builders before save.
+	requestexecution.ExternalIDValidator = requestexecutionDescExternalID.Validators[0].(func(string) error)
 	// requestexecutionDescFormat is the schema descriptor for format field.
 	requestexecutionDescFormat := requestexecutionFields[6].Descriptor()
 	// requestexecution.DefaultFormat holds the default value on creation for the format field.

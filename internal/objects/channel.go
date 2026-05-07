@@ -30,10 +30,13 @@ type HeaderEntry struct {
 
 // Override operation types.
 const (
-	OverrideOpSet    = "set"
-	OverrideOpDelete = "delete"
-	OverrideOpRename = "rename"
-	OverrideOpCopy   = "copy"
+	OverrideOpSet          = "set"
+	OverrideOpDelete       = "delete"
+	OverrideOpRename       = "rename"
+	OverrideOpCopy         = "copy"
+	OverrideOpArrayAppend  = "array_append"
+	OverrideOpArrayPrepend = "array_prepend"
+	OverrideOpArrayInsert  = "array_insert"
 )
 
 // OverrideOperation defines a structured override operation for request body/header manipulation.
@@ -44,6 +47,13 @@ type OverrideOperation struct {
 	To        string `json:"to,omitempty"`
 	Value     string `json:"value,omitempty"`
 	Condition string `json:"condition,omitempty"`
+	// Index is the target position for array_insert. Only used by array_insert.
+	// Negative values count from the end (-1 = before last). Out-of-range values are clamped to [0, len].
+	Index *int `json:"index,omitempty"`
+	// Splat controls whether a JSON-array value is spread into the target array
+	// (true: each element inserted individually) or inserted as a single nested element (false).
+	// Only meaningful for array_append, array_prepend, and array_insert. Defaults to true.
+	Splat *bool `json:"splat,omitempty"`
 }
 
 func HeaderEntriesToOverrideOperations(headers []HeaderEntry) []OverrideOperation {
@@ -133,6 +143,12 @@ type ChannelSettings struct {
 	// When set to nil, it inherits from the global system setting.
 	// When set to true/false, it overrides the global setting.
 	PassThroughUserAgent *bool `json:"passThroughUserAgent,omitempty"`
+
+	// PassThroughBody controls whether to forward the original request body directly
+	// to the upstream provider and the raw provider response/stream directly to the client
+	// without re-serialization through the transform pipelines.
+	// Only effective when the inbound and outbound API formats are identical.
+	PassThroughBody bool `json:"passThroughBody,omitempty"`
 
 	// RateLimit configures the upstream rate limit for the channel.
 	// When configured, the load balancer will skip channels that have exceeded their rate limits.

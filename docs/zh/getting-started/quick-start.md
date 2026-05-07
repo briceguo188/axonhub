@@ -353,6 +353,9 @@ log:
 
 ## 下一步
 
+### 理解请求流程
+- [请求处理流程](request-processing.md)：理解请求从入口到上游执行的完整链路，以及模型映射、模型关联、渠道选择之间的区别
+
 ### 探索功能
 - **追踪**：设置请求追踪以实现可观测性
 - **权限**：配置基于角色的访问控制
@@ -387,7 +390,7 @@ log:
 ### 获取帮助
 
 - 查看 [GitHub Issues](https://github.com/looplj/axonhub/issues)
-- 查看 [架构文档](../architecture/erd.md)
+- 查看 [架构文档](../development/erd.md)
 - 加入社区讨论
 
 ## 下一步是什么？

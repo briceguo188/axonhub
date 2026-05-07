@@ -24,14 +24,14 @@ import (
 )
 
 func TestGenerateAPIKey(t *testing.T) {
-	apiKey, err := GenerateAPIKey()
+	apiKey, err := GenerateAPIKey("ah")
 	require.NoError(t, err)
 	require.NotEmpty(t, apiKey)
 	require.True(t, len(apiKey) > 3)
 	require.Equal(t, "ah-", apiKey[:3])
 
 	// Test that multiple calls produce different keys
-	apiKey2, err := GenerateAPIKey()
+	apiKey2, err := GenerateAPIKey("ah")
 	require.NoError(t, err)
 	require.NotEqual(t, apiKey, apiKey2)
 }
@@ -49,6 +49,7 @@ func setupTestAPIKeyService(t *testing.T, cacheConfig xcache.Config) (*APIKeySer
 		CacheConfig:    cacheConfig,
 		Ent:            client,
 		ProjectService: projectService,
+		KeyPrefix:      "ah",
 	})
 
 	return apiKeyService, client
@@ -91,7 +92,7 @@ func TestAPIKeyService_GetAPIKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate API key
-	apiKeyString, err := GenerateAPIKey()
+	apiKeyString, err := GenerateAPIKey("ah")
 	require.NoError(t, err)
 
 	// Create API key in database
@@ -207,7 +208,7 @@ func TestAPIKeyService_GetAPIKey_WithDifferentCaches(t *testing.T) {
 			require.NoError(t, err)
 
 			// Generate and create API key
-			apiKeyString, err := GenerateAPIKey()
+			apiKeyString, err := GenerateAPIKey("ah")
 			require.NoError(t, err)
 
 			apiKey, err := client.APIKey.Create().
@@ -452,6 +453,25 @@ func TestAPIKeyService_UpdateAPIKeyProfiles(t *testing.T) {
 		_, err := apiKeyService.UpdateAPIKeyProfiles(ctx, apiKey.ID, profiles)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "channelTagsMatchMode is invalid")
+	})
+
+	t.Run("Channel tags match mode none is valid", func(t *testing.T) {
+		profiles := objects.APIKeyProfiles{
+			ActiveProfile: "production",
+			Profiles: []objects.APIKeyProfile{
+				{
+					Name:                 "production",
+					ChannelTags:          []string{"official"},
+					ChannelTagsMatchMode: objects.ChannelTagsMatchModeNone,
+				},
+			},
+		}
+
+		updatedAPIKey, err := apiKeyService.UpdateAPIKeyProfiles(ctx, apiKey.ID, profiles)
+		require.NoError(t, err)
+		require.NotNil(t, updatedAPIKey)
+		require.NotNil(t, updatedAPIKey.Profiles)
+		require.Equal(t, objects.ChannelTagsMatchModeNone, updatedAPIKey.Profiles.Profiles[0].ChannelTagsMatchMode)
 	})
 
 	t.Run("Multiple profiles with unique names", func(t *testing.T) {
@@ -1029,7 +1049,7 @@ func TestAPIKeyService_CreateLLMAPIKey(t *testing.T) {
 		Save(setupCtx)
 	require.NoError(t, err)
 
-	serviceKey, err := GenerateAPIKey()
+	serviceKey, err := GenerateAPIKey("ah")
 	require.NoError(t, err)
 
 	ownerAPIKey, err := client.APIKey.Create().

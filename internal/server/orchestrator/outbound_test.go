@@ -313,11 +313,11 @@ func TestPersistentOutboundTransformer_CanRetry(t *testing.T) {
 
 func TestIsCompletedAggregatedOutboundResponse(t *testing.T) {
 	t.Run("usage means completed", func(t *testing.T) {
-		require.True(t, isCompletedAggregatedOutboundResponse(llm.ResponseMeta{Usage: &llm.Usage{TotalTokens: 15}}))
+		require.True(t, isCompletedAggregated(llm.ResponseMeta{Usage: &llm.Usage{PromptTokens: 10, CompletionTokens: 5, TotalTokens: 15}}))
 	})
 
 	t.Run("missing usage is not completed", func(t *testing.T) {
-		require.False(t, isCompletedAggregatedOutboundResponse(llm.ResponseMeta{}))
+		require.False(t, isCompletedAggregated(llm.ResponseMeta{}))
 	})
 }
 
@@ -592,6 +592,72 @@ func TestPersistentOutboundTransformer_TransformRequest_WithPrepopulatedState(t 
 
 	// Verify channel was used
 	require.Equal(t, testChannel, processor.state.CurrentCandidate.Channel)
+}
+
+func TestFilterResponseCustomToolMessagesForNonResponsesOutbound(t *testing.T) {
+	baseRequest := &llm.Request{
+		APIFormat: llm.APIFormatOpenAIResponse,
+		Messages: []llm.Message{
+			{
+				Role: "assistant",
+				ToolCalls: []llm.ToolCall{
+					{
+						ID:   "call_custom_1",
+						Type: llm.ToolTypeResponsesCustomTool,
+						ResponseCustomToolCall: &llm.ResponseCustomToolCall{
+							CallID: "call_custom_1",
+							Name:   "apply_patch",
+							Input:  "*** Begin Patch\n*** End Patch\n",
+						},
+					},
+					{
+						ID:   "call_function_1",
+						Type: llm.ToolTypeFunction,
+						Function: llm.FunctionCall{
+							Name:      "get_weather",
+							Arguments: "{}",
+						},
+					},
+				},
+			},
+			{
+				Role:       "tool",
+				ToolCallID: func() *string { v := "call_custom_1"; return &v }(),
+				Content: llm.MessageContent{
+					Content: func() *string { v := "custom"; return &v }(),
+				},
+			},
+			{
+				Role:       "tool",
+				ToolCallID: func() *string { v := "call_function_1"; return &v }(),
+				Content: llm.MessageContent{
+					Content: func() *string { v := "function"; return &v }(),
+				},
+			},
+		},
+	}
+
+	t.Run("filters when inbound is responses and outbound is not", func(t *testing.T) {
+		got := filterResponseCustomToolMessagesForNonResponsesOutbound(baseRequest, llm.APIFormatOpenAIChatCompletion)
+		require.NotSame(t, baseRequest, got)
+		require.Len(t, got.Messages, 2)
+		require.Len(t, got.Messages[0].ToolCalls, 1)
+		require.Equal(t, llm.ToolTypeFunction, got.Messages[0].ToolCalls[0].Type)
+		require.NotNil(t, got.Messages[1].ToolCallID)
+		require.Equal(t, "call_function_1", *got.Messages[1].ToolCallID)
+	})
+
+	t.Run("does not filter when outbound is responses", func(t *testing.T) {
+		got := filterResponseCustomToolMessagesForNonResponsesOutbound(baseRequest, llm.APIFormatOpenAIResponse)
+		require.Same(t, baseRequest, got)
+	})
+
+	t.Run("does not filter when inbound is not responses", func(t *testing.T) {
+		nonResponsesReq := *baseRequest
+		nonResponsesReq.APIFormat = llm.APIFormatOpenAIChatCompletion
+		got := filterResponseCustomToolMessagesForNonResponsesOutbound(&nonResponsesReq, llm.APIFormatOpenAIChatCompletion)
+		require.Same(t, &nonResponsesReq, got)
+	})
 }
 
 // ========== 429 Retry-After Tests ==========

@@ -1132,6 +1132,8 @@ enum ChannelType @goModel(model: "github.com/looplj/axonhub/internal/ent/channel
   burncloud
   modelscope
   bailian
+  bailian_anthropic
+  moonshot_coding
   jina
   github
   github_copilot
@@ -1139,6 +1141,8 @@ enum ChannelType @goModel(model: "github.com/looplj/axonhub/internal/ent/channel
   cerebras
   antigravity
   nanogpt
+  nanogpt_responses
+  ollama
 }
 """
 ChannelWhereInput is used for filtering Channel objects.
@@ -1569,6 +1573,10 @@ input CreateRequestInput {
   clientIP: String
   metricsLatencyMs: Int
   metricsFirstTokenLatencyMs: Int
+  """
+  Reasoning/thinking duration in milliseconds
+  """
+  metricsReasoningDurationMs: Int
   """
   whether the generated content has been saved to external storage
   """
@@ -3266,6 +3274,8 @@ ProviderQuotaStatusProviderType is enum for the field provider_type
 enum ProviderQuotaStatusProviderType @goModel(model: "github.com/looplj/axonhub/internal/ent/providerquotastatus.ProviderType") {
   claudecode
   codex
+  github_copilot
+  nanogpt
 }
 """
 ProviderQuotaStatusStatus is enum for the field status
@@ -3896,6 +3906,10 @@ type Request implements Node {
   metricsLatencyMs: Int
   metricsFirstTokenLatencyMs: Int
   """
+  Reasoning/thinking duration in milliseconds
+  """
+  metricsReasoningDurationMs: Int
+  """
   whether the generated content has been saved to external storage
   """
   contentSaved: Boolean!
@@ -4035,6 +4049,10 @@ type RequestExecution implements Node {
   stream: Boolean!
   metricsLatencyMs: Int
   metricsFirstTokenLatencyMs: Int
+  """
+  Reasoning/thinking duration in milliseconds
+  """
+  metricsReasoningDurationMs: Int
   """
   Request headers
   """
@@ -4300,6 +4318,19 @@ input RequestExecutionWhereInput {
   metricsFirstTokenLatencyMsIsNil: Boolean
   metricsFirstTokenLatencyMsNotNil: Boolean
   """
+  metrics_reasoning_duration_ms field predicates
+  """
+  metricsReasoningDurationMs: Int
+  metricsReasoningDurationMsNEQ: Int
+  metricsReasoningDurationMsIn: [Int!]
+  metricsReasoningDurationMsNotIn: [Int!]
+  metricsReasoningDurationMsGT: Int
+  metricsReasoningDurationMsGTE: Int
+  metricsReasoningDurationMsLT: Int
+  metricsReasoningDurationMsLTE: Int
+  metricsReasoningDurationMsIsNil: Boolean
+  metricsReasoningDurationMsNotNil: Boolean
+  """
   request edge predicates
   """
   hasRequest: Boolean
@@ -4548,6 +4579,19 @@ input RequestWhereInput {
   metricsFirstTokenLatencyMsLTE: Int
   metricsFirstTokenLatencyMsIsNil: Boolean
   metricsFirstTokenLatencyMsNotNil: Boolean
+  """
+  metrics_reasoning_duration_ms field predicates
+  """
+  metricsReasoningDurationMs: Int
+  metricsReasoningDurationMsNEQ: Int
+  metricsReasoningDurationMsIn: [Int!]
+  metricsReasoningDurationMsNotIn: [Int!]
+  metricsReasoningDurationMsGT: Int
+  metricsReasoningDurationMsGTE: Int
+  metricsReasoningDurationMsLT: Int
+  metricsReasoningDurationMsLTE: Int
+  metricsReasoningDurationMsIsNil: Boolean
+  metricsReasoningDurationMsNotNil: Boolean
   """
   content_saved field predicates
   """
@@ -5568,6 +5612,11 @@ input UpdateRequestInput {
   clearMetricsLatencyMs: Boolean
   metricsFirstTokenLatencyMs: Int
   clearMetricsFirstTokenLatencyMs: Boolean
+  """
+  Reasoning/thinking duration in milliseconds
+  """
+  metricsReasoningDurationMs: Int
+  clearMetricsReasoningDurationMs: Boolean
   """
   whether the generated content has been saved to external storage
   """
